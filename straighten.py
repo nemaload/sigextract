@@ -3,7 +3,9 @@
 # straighten - a toy demo script applying backbone information to optical
 # straightening of the source image by slicing and restacking the image
 #
-# Usage: straighten.py HDF5FILE FRAMENUMBER BACKBONEFILE
+# Usage: straighten.py HDF5FILE FRAMENUMBER BACKBONEFILE [OUTPUTFILE]
+#
+# If OUTPUTFILE is not passed, the straightening result is shown on screen.
 
 import math
 import random
@@ -14,6 +16,7 @@ import bblib
 
 import matplotlib.pyplot as plt
 import scipy.interpolate as interp
+import scipy.misc
 
 import os
 import sys
@@ -56,6 +59,9 @@ if __name__ == '__main__':
     filename = sys.argv[1]
     frameNo = int(sys.argv[2])
     bbfilename = sys.argv[3]
+    outputfile = None
+    if len(sys.argv) >= 5:
+        outputfile = sys.argv[4]
 
     h5file = tables.open_file(filename, mode = "r")
     node = h5file.get_node('/', '/images/' + str(frameNo))
@@ -84,8 +90,11 @@ if __name__ == '__main__':
 
     restackframe = restackBySpline(bbpoints, uvframe, points, edgedists)
 
-    # Draw the restacked image
-    fig, axes = plt.subplots(ncols = 2)
-    axes[0].imshow(uvframe, cmap=plt.cm.gray)
-    axes[1].imshow(restackframe, cmap=plt.cm.gray)
-    plt.show()
+    if outputfile:
+        scipy.misc.imsave(outputfile, restackframe)
+    else:
+        # Draw the restacked image
+        fig, axes = plt.subplots(ncols = 2)
+        axes[0].imshow(uvframe, cmap=plt.cm.gray)
+        axes[1].imshow(restackframe, cmap=plt.cm.gray)
+        plt.show()

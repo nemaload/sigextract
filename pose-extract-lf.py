@@ -69,6 +69,10 @@ NUM_SAMPLES = 160
 # effective minimum distance at the end of the algorithm may be as
 # low as MIN_DISTANCE/2.
 MIN_POINT_DISTANCE = 4.
+# Minimum value of the line connecting two MST points. 0.9 means that
+# at most 10% of the line may cross black areas. This can be used to
+# prevent connections between separate blobs.
+LINE_VALUE_THRESHOLD = 0.9
 
 
 def print_mask(mask):
@@ -174,6 +178,29 @@ def sampleRandomPoint(uvframe):
         if uvframe[c] > 0:
             return c
 
+def pointSquaredDistance(point0, point1):
+    return (point0[0] - point1[0]) ** 2 + (point0[1] - point1[1]) ** 2
+
+def lineSumValue(point0, point1, uvframe):
+    """
+    Return a line integral between point0 and point1 on uvframe.
+    """
+    delta = math.sqrt(pointSquaredDistance(point0, point1))
+    walkDir = numpy.array([point1[0] - point0[0], point1[1] - point0[1]], dtype = 'float')
+    walkDir /= max(numpy.fabs(walkDir)) # normalize to 1-pixel stepping
+    walkDim = math.sqrt(walkDir[0]**2 + walkDir[1]**2)
+
+    coord = point0 + walkDir
+    walked = 0.
+    value = 0.
+    while walked < delta:
+        if coord[0] >= 0 and coord[1] >= 0:
+            value += uvframe[tuple(numpy.floor(coord))]
+        walked += walkDim
+        coord += walkDir
+
+    return value
+
 def pointsToBackbone(points, uvframe):
     # Generate a complete graph over these points,
     # weighted by Euclidean distances
@@ -188,6 +215,11 @@ def pointsToBackbone(points, uvframe):
             # TODO: scipy's cpair? but we will need to construct
             # a graph anyway
             if points[j] is None:
+                continue
+            # Eschew lines crossing dark areas
+            lineSum = lineSumValue(points[i], points[j], uvframe)
+            # print i, j, points[i], points[j], lineSum, math.sqrt(pointSquaredDistance(points[i], points[j]) * (LINE_VALUE_THRESHOLD ** 2))
+            if lineSum ** 2 < pointSquaredDistance(points[i], points[j]) * (LINE_VALUE_THRESHOLD ** 2):
                 continue
             g.add_edge(i, j, {'weight': math.pow(points[i][0]-points[j][0], 2) + math.pow(points[i][1]-points[j][1], 2)})
 

@@ -303,8 +303,8 @@ def extendToTip(ipoint0, ipoint1, points, edgedists, edgedirs, uvframe):
     """
     point0 = points[ipoint0]
     point1 = points[ipoint1]
-    walkDir = numpy.array([point1[0] - point0[0], point1[1] - point0[1]])
-    walkDir /= max(abs(walkDir)) # normalize to 1-pixel stepping
+    walkDir = numpy.array([point1[0] - point0[0], point1[1] - point0[1]], dtype = 'float')
+    walkDir /= max(numpy.fabs(walkDir)) # normalize to 1-pixel stepping
     walkDirSq = walkDir[0]**2 + walkDir[1]**2
     walkDirDim = math.sqrt(walkDirSq)
     #print "point0", point0, "point1", point1, "walkDir", walkDir, "walkDirDim", walkDirDim

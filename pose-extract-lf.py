@@ -216,6 +216,9 @@ def pointsToBackbone(points, uvframe):
             # a graph anyway
             if points[j] is None:
                 continue
+            if points[i] == points[j]:
+                points[j] = None
+                continue
             # Eschew lines crossing dark areas
             lineSum = lineSumValue(points[i], points[j], uvframe)
             # print i, j, points[i], points[j], lineSum, math.sqrt(pointSquaredDistance(points[i], points[j]) * (LINE_VALUE_THRESHOLD ** 2))

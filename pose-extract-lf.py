@@ -202,6 +202,17 @@ def lineSumValue(point0, point1, uvframe):
     return value
 
 def pointsToBackbone(points, uvframe):
+    # Filter out duplicate points
+    for i in range(len(points)):
+        if points[i] is None:
+            continue
+        for j in range(i+1, len(points)):
+            if points[j] is None:
+                continue
+            if points[i] == points[j]:
+                points[j] = None
+                continue
+
     # Generate a complete graph over these points,
     # weighted by Euclidean distances
     g = nx.Graph()
@@ -215,9 +226,6 @@ def pointsToBackbone(points, uvframe):
             # TODO: scipy's cpair? but we will need to construct
             # a graph anyway
             if points[j] is None:
-                continue
-            if points[i] == points[j]:
-                points[j] = None
                 continue
             # Eschew lines crossing dark areas
             lineSum = lineSumValue(points[i], points[j], uvframe)

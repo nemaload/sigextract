@@ -282,9 +282,6 @@ def gradientAscent(edgedists, edgedirs, point):
     max_steps = max(edgedists.shape)
     steps = 0
     while steps < max_steps:
-        if point < [0,0] or point >= edgedists.shape:
-            # Throw away points that walk out of the picture
-            return None
         intpoint = [round(point[0]), round(point[1])]
         curdist = edgedistsInterpolate(edgedists, point)
         if bestDist is not None and curdist < bestDist:
@@ -297,6 +294,9 @@ def gradientAscent(edgedists, edgedirs, point):
         walkDir = edgedirs[tuple(intpoint)] / max(abs(edgedirs[tuple(intpoint)]))
         point = [point[0] - walkDir[0], point[1] - walkDir[1]]
         #print ">", bestPoint, bestDist, walkDir, point, curdist
+        if point < [0,0] or point[0] >= edgedists.shape[0] or point[1] >= edgedists.shape[1]:
+            # Throw away points that walk out of the picture
+            return None
         steps += 1
     return bestPoint
 

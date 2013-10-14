@@ -198,10 +198,14 @@ def lineSumValue(point0, point1, uvframe):
             try:
                 value += uvframe[tuple(numpy.floor(coord))]
             except IndexError:
+                #print 'index error'
                 break
+        else:
+            #print 'oob skip'
         walked += walkDim
         coord += walkDir
 
+    #print walkDir, walkDim, delta, walked, value
     return value
 
 def pointsToBackbone(points, uvframe):
@@ -234,6 +238,7 @@ def pointsToBackbone(points, uvframe):
             lineSum = lineSumValue(points[i], points[j], uvframe)
             # print i, j, points[i], points[j], lineSum, math.sqrt(pointSquaredDistance(points[i], points[j]) * (LINE_VALUE_THRESHOLD ** 2))
             if lineSum ** 2 < pointSquaredDistance(points[i], points[j]) * (LINE_VALUE_THRESHOLD ** 2):
+                #print '-->'
                 continue
             g.add_edge(i, j, {'weight': math.pow(points[i][0]-points[j][0], 2) + math.pow(points[i][1]-points[j][1], 2)})
 
@@ -293,12 +298,14 @@ def gradientAscent(edgedists, edgedirs, point):
         bestPoint = point
         if max(abs(edgedirs[tuple(intpoint)])) == 0:
             # We might have been at a ledge, now we are out of the worm; discard
+            #print "edgedirs zero"
             return None
         walkDir = edgedirs[tuple(intpoint)] / max(abs(edgedirs[tuple(intpoint)]))
         point = [point[0] - walkDir[0], point[1] - walkDir[1]]
         #print ">", bestPoint, bestDist, walkDir, point, curdist
         if point < [0,0] or point[0] >= edgedists.shape[0] or point[1] >= edgedists.shape[1]:
             # Throw away points that walk out of the picture
+            #print "point out of bounds", point, edgedists.shape
             return None
         steps += 1
     return bestPoint

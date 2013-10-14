@@ -192,11 +192,11 @@ def lineSumValue(point0, point1, uvframe):
 
     coord = point0 + walkDir
     walked = 0.
-    value = 0.
+    value = walkDim
     while walked < delta:
         if coord[0] >= 0 and coord[1] >= 0:
             try:
-                value += uvframe[tuple(numpy.floor(coord))]
+                value += uvframe[tuple(numpy.floor(coord))] * walkDim
             except IndexError:
                 #print 'index error'
                 break

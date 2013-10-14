@@ -202,6 +202,7 @@ def lineSumValue(point0, point1, uvframe):
                 break
         else:
             #print 'oob skip'
+            pass
         walked += walkDim
         coord += walkDir
 

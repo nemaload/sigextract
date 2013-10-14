@@ -208,7 +208,7 @@ def lineSumValue(point0, point1, uvframe):
     #print walkDir, walkDim, delta, walked, value
     return value
 
-def pointsToBackbone(points, uvframe):
+def pointsDeduplicate(points):
     # Filter out duplicate points
     for i in range(len(points)):
         if points[i] is None:
@@ -219,7 +219,10 @@ def pointsToBackbone(points, uvframe):
             if points[i] == points[j]:
                 points[j] = None
                 continue
+    return points
 
+
+def pointsToBackbone(points, uvframe):
     # Generate a complete graph over these points,
     # weighted by Euclidean distances
     g = nx.Graph()
@@ -410,6 +413,7 @@ def poseExtract(uvframe, edgedists, edgedirs):
     points = [sampleRandomPoint(uvframe) for i in range(NUM_SAMPLES)]
 
     # Generate a backbone from the points set
+    points = pointsDeduplicate(points)
     backbone = pointsToBackbone(points, uvframe)
     #print backbone
 
@@ -430,6 +434,15 @@ def poseExtract(uvframe, edgedists, edgedirs):
         #print "---", i, points[i]
         points[i] = gradientAscent(edgedists, edgedirs, points[i])
         #print "->", points[i]
+
+    points = pointsDeduplicate(points)
+
+    # Show the backbone
+    if PROGRESS_FIGURES:
+        f = plt.figure()
+        imgplot = plt.imshow(edgedists)
+        display_path(f.add_subplot(111), filter(lambda i: points[i] is not None, backbone), points)
+        plt.show()
 
     # Redo the complete graph - MST - diameter with final graph
     # to get straight tracing

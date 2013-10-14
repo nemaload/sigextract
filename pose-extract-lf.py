@@ -467,6 +467,9 @@ def poseExtract(uvframe, edgedists, edgedirs):
             addPoint(points, extendToTip(backbone[len(backbone)-2], backbone[len(backbone)-1], points, edgedists, edgedirs, uvframe))
         ]
 
+    # Remove identical successive points
+    backbone = [backbone[0]] + [ backbone[i] for i in range(1, len(backbone)) if numpy.any(points[backbone[i]] != points[backbone[i-1]]) ]
+
     # Show the backbone
     if PROGRESS_FIGURES:
         f = plt.figure()

@@ -73,11 +73,6 @@ if __name__ == '__main__':
     uvframe = hdf5lflib.compute_uvframe(node, ar, cw)
 
     (points, edgedists) = bblib.loadBackbone(bbfilename)
-    # Possibly reverse the backbone - just for user friendliness wrt. debug
-    # images
-    if points[0][2] > points[-1][2]:
-        points = points[::-1]
-        edgedists = edgedists[::-1]
 
     (spline, bblength) = bblib.backboneSpline(points)
     bbpoints = bblib.traceBackbone(spline, bblength, uvframe)

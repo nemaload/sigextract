@@ -39,14 +39,23 @@ def loadBackbone(bbfilename):
     Load backbone information from a file in one of two supported formats.
     """
     bbext = os.path.splitext(bbfilename)[1]
+
     if bbext == '.tsv':
         bbfile = open(bbfilename, 'r')
-        return readTSV(bbfile)
+        (points, edgedists) = readTSV(bbfile)
     elif bbext == '.json':
         bbfile = open(bbfilename, 'r')
-        return readBbJSON(bbfile)
+        (points, edgedists) = readBbJSON(bbfile)
     else:
         raise ValueError('Unknown backbone data extension ' + bbext)
+
+    # Possibly reverse the backbone - just for user friendliness wrt. debug
+    # images
+    if points[0][2] > points[-1][2]:
+        points = points[::-1]
+        edgedists = edgedists[::-1]
+
+    return (points, edgedists)
 
 
 def p2pDist(point0, point1):

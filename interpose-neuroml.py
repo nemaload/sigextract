@@ -13,7 +13,9 @@
 # where ZOOM may be negative to reverse the direction of the worm.
 #
 # NEUROML2DIR is a directory containing NeuroML2 XML files (.nml)
-# describing the cells to be shown.
+# describing the cells to be shown. The positions stored in the files
+# have to be based on a straightened worm model! (Produced e.g. by
+# openworm/CElegansNeuroML:CElegans/pythonScripts/PositionStraighten.py)
 
 import glob
 import math
@@ -87,6 +89,7 @@ if __name__ == '__main__':
     poseinfo = { 'zoom': float(sys.argv[4]) } #dict(zip("zoom", sys.argv[3].split(','))
     nmdir = sys.argv[5]
 
+    # Load the image uvframe
     h5file = tables.open_file(filename, mode = "r")
     node = h5file.get_node('/', '/images/' + str(frameNo))
     ar = h5file.get_node('/', '/autorectification')
@@ -96,6 +99,7 @@ if __name__ == '__main__':
         cw = None
     uvframe = hdf5lflib.compute_uvframe(node, ar, cw)
 
+    # Load neuron positions
     neurons = []
     for nmfilename in glob.glob(nmdir + '/*.nml'):
         for neuron in load_neuron(nmfilename):

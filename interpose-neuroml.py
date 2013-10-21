@@ -62,23 +62,23 @@ def draw_uvframe_neurons(uvframe, neurons, poseinfo):
 def load_neuron(filename):
     print "Loading " + filename + "..."
     doc = loaders.NeuroMLLoader.load(filename)
-    if not doc.cells:
-        return None
-    cell = doc.cells[0]
-    soma_segid = filter(lambda g: g.id == "Soma", cell.morphology.segment_groups)[0].members[0].segments
-    segment = cell.morphology.segments[soma_segid]
-    # Normally, proximal and distal coordinates will be the same in our
-    # dataset; if not, average them just to be sure; then consider a circle
-    # around this coordinate to be the neuron location.
-    neuron = {
-            'name': cell.id,
-            'pos': numpy.array([
-                (segment.proximal.x + segment.distal.x) / 2.,
-                (segment.proximal.y + segment.distal.y) / 2.,
-                (segment.proximal.z + segment.distal.z) / 2.]),
-            'diameter': (segment.proximal.diameter + segment.distal.diameter) / 2.,
-        }
-    return neuron
+    neurons = []
+    for cell in doc.cells:
+        soma_segid = filter(lambda g: g.id == "Soma", cell.morphology.segment_groups)[0].members[0].segments
+        segment = cell.morphology.segments[soma_segid]
+        print "  Loading cell " + cell.id
+        # Normally, proximal and distal coordinates will be the same in our
+        # dataset; if not, average them just to be sure; then consider a circle
+        # around this coordinate to be the neuron location.
+        neurons.append({
+                'name': cell.id,
+                'pos': numpy.array([
+                    (segment.proximal.x + segment.distal.x) / 2.,
+                    (segment.proximal.y + segment.distal.y) / 2.,
+                    (segment.proximal.z + segment.distal.z) / 2.]),
+                'diameter': (segment.proximal.diameter + segment.distal.diameter) / 2.,
+            })
+    return neurons
 
 if __name__ == '__main__':
     filename = sys.argv[1]
@@ -96,7 +96,9 @@ if __name__ == '__main__':
         cw = None
     uvframe = hdf5lflib.compute_uvframe(node, ar, cw)
 
-    neurons = filter(lambda n: n is not None,
-            [ load_neuron(nmfilename) for nmfilename in glob.glob(nmdir + '/*.nml') ])
+    neurons = []
+    for nmfilename in glob.glob(nmdir + '/*.nml'):
+        for neuron in load_neuron(nmfilename):
+            neurons.append(neuron)
 
     draw_uvframe_neurons(uvframe, neurons, poseinfo)

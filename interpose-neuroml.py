@@ -47,11 +47,18 @@ def project_diameter(diam, poseinfo):
     zoom = poseinfo["zoom"]
     return diam * zoom
 
-def draw_uvframe_neurons(uvframe, neurons, poseinfo):
+
+def draw_uvframe_neurons(uvframe, bbpoints, neurons, poseinfo):
     # Draw the image with neuron locations interposed
     f = plt.figure()
     imgplot = plt.imshow(uvframe, cmap=plt.cm.gray)
     ax = f.add_subplot(111)
+
+    for p in bbpoints:
+        pos = [p[0,1], p[0,0]]
+        ax.add_patch(matplotlib.patches.Circle(pos, radius = 0.5,
+            edgecolor = 'yellow', fill = 0))
+
     for n in neurons:
         pos = project_coord(n["pos"], poseinfo)
         r = project_diameter(n["diameter"], poseinfo) / 2.
@@ -59,7 +66,9 @@ def draw_uvframe_neurons(uvframe, neurons, poseinfo):
         ax.add_patch(matplotlib.patches.Circle(pos, radius = r,
             edgecolor = 'green', fill = 0))
         ax.annotate(n["name"], xy = pos, color = 'green')
+
     plt.show()
+
 
 def load_neuron(filename):
     print "Loading " + filename + "..."
@@ -99,10 +108,15 @@ if __name__ == '__main__':
         cw = None
     uvframe = hdf5lflib.compute_uvframe(node, ar, cw)
 
+    # Load the backbone spline
+    (points, edgedists) = bblib.loadBackbone(bbfilename)
+    (spline, bblength) = bblib.backboneSpline(points)
+    bbpoints = bblib.traceBackbone(spline, bblength, uvframe)
+
     # Load neuron positions
     neurons = []
     for nmfilename in glob.glob(nmdir + '/*.nml'):
         for neuron in load_neuron(nmfilename):
             neurons.append(neuron)
 
-    draw_uvframe_neurons(uvframe, neurons, poseinfo)
+    draw_uvframe_neurons(uvframe, bbpoints, neurons, poseinfo)

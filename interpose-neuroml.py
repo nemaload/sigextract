@@ -47,6 +47,23 @@ def project_diameter(diam, poseinfo):
     zoom = poseinfo["zoom"]
     return diam * zoom
 
+def translate_by_bb(coord, bbpoints):
+    """
+    Translate xy @coord by the corresponding spine point of @bbpoints.
+    The x coordinate determines a point _on_ the spine, the y coordinate
+    then points perpendicularly.
+    """
+    try:
+        bbpoints0 = bbpoints[int(coord[0])]
+        bbpoints1 = bbpoints[int(coord[0] + 1.)]
+    except IndexError:
+        return None
+    beta = coord[0] - int(coord[0])
+    (base_c, base_d) = bbpoints1 * beta + bbpoints0 * (1. - beta)
+
+    coord = base_c + coord[1] * base_d
+    return [coord[1], coord[0]]
+
 
 def draw_uvframe_neurons(uvframe, bbpoints, neurons, poseinfo):
     # Draw the image with neuron locations interposed
@@ -60,7 +77,9 @@ def draw_uvframe_neurons(uvframe, bbpoints, neurons, poseinfo):
             edgecolor = 'yellow', fill = 0))
 
     for n in neurons:
-        pos = project_coord(n["pos"], poseinfo)
+        pos = translate_by_bb(project_coord(n["pos"], poseinfo), bbpoints)
+        if pos is None:
+            continue
         r = project_diameter(n["diameter"], poseinfo) / 2.
         print "showing", n["name"], "pos", pos, "r", r
         ax.add_patch(matplotlib.patches.Circle(pos, radius = r,

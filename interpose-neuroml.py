@@ -9,12 +9,14 @@
 # BACKBONEFILE file describes the backbone of the current worm pose.
 #
 # POSEINFO is the current worm pose description in the format
-#   ZOOM,SHIFT
+#   ZOOM,SHIFT,ANGLE
 # where ZOOM is the multiplicative element for both directions
-# (possibly negative to reverse the direction of the worm), and
+# (possibly negative to reverse the direction of the worm),
 # SHIFT is the coordinate of the point in the spine which lies
 # in the horizontal middle of the worm (i.e. when we see just the
-# back tip of the worm, it will be a huge negative number).
+# back tip of the worm, it will be a huge negative number),
+# and ANGLE is the rotation angle around the A-P axis of the worm
+# (in degrees).
 #
 # NEUROML2DIR is a directory containing NeuroML2 XML files (.nml)
 # describing the cells to be shown. The positions stored in the files
@@ -40,9 +42,28 @@ import neuroml.loaders as loaders
 def project_coord(pos, poseinfo):
     """
     Return xy 2D projection of @pos according to @poseinfo.
+
+    @pos is in coordinate system:
+    z ^ . x
+      |/
+      +--> y
     """
+
+    # Apply zoom
     zoom = poseinfo["zoom"]
-    return (pos[1] * zoom, pos[2] * zoom)
+    pos = pos * zoom
+
+    # Apply rotation (around the y axis)
+    alpha = poseinfo["angle"] * math.pi / 180.
+    d = math.sqrt(pos[0]**2 + pos[2]**2) # dist from 0
+    beta = math.asin(pos[2] / d) # current angle
+    gamma = alpha + beta # new angle
+    pos[0] = d * math.cos(gamma)
+    pos[2] = d * math.sin(gamma)
+
+    # Flatten - ignore the x coordinate ("depth")
+    return (pos[1], pos[2])
+
 
 def project_diameter(diam, poseinfo):
     """
@@ -125,7 +146,7 @@ if __name__ == '__main__':
     frameNo = int(sys.argv[2])
     bbfilename = sys.argv[3]
     poseinfo_str = sys.argv[4]
-    poseinfo = dict(zip(["zoom", "shift"], [float(f) for f in poseinfo_str.split(',')]))
+    poseinfo = dict(zip(["zoom", "shift", "angle"], [float(f) for f in poseinfo_str.split(',')]))
     nmdir = sys.argv[5]
 
     # Load the image uvframe

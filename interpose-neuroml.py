@@ -82,7 +82,7 @@ def draw_uvframe_neurons(uvframe, bbpoints, neurons, poseinfo):
             continue
         r = project_diameter(n["diameter"], poseinfo) / 2.
         print "showing", n["name"], "pos", pos, "r", r
-        ax.add_patch(matplotlib.patches.Circle(pos, radius = r,
+        ax.add_patch(matplotlib.patches.Circle(pos, radius = r / 10.,
             edgecolor = 'green', fill = 0))
         ax.annotate(n["name"], xy = pos, color = 'green')
 

@@ -23,7 +23,6 @@
 # have to be based on a straightened worm model! (Produced e.g. by
 # openworm/CElegansNeuroML:CElegans/pythonScripts/PositionStraighten.py)
 
-import glob
 import math
 import sys
 import tables
@@ -31,13 +30,11 @@ import tables
 import numpy
 import hdf5lflib
 import bblib
+import nmllib
 
 import matplotlib.pyplot as plt
 import matplotlib.patches
 from matplotlib.path import Path
-
-import neuroml
-import neuroml.loaders as loaders
 
 def project_coord(pos, poseinfo):
     """
@@ -120,27 +117,6 @@ def draw_uvframe_neurons(uvframe, bbpoints, neurons, poseinfo, title):
     plt.show()
 
 
-def load_neuron(filename):
-    print "Loading " + filename + "..."
-    doc = loaders.NeuroMLLoader.load(filename)
-    neurons = []
-    for cell in doc.cells:
-        soma_segid = filter(lambda g: g.id == "Soma", cell.morphology.segment_groups)[0].members[0].segments
-        segment = cell.morphology.segments[soma_segid]
-        print "  Loading cell " + cell.id
-        # Normally, proximal and distal coordinates will be the same in our
-        # dataset; if not, average them just to be sure; then consider a circle
-        # around this coordinate to be the neuron location.
-        neurons.append({
-                'name': cell.id,
-                'pos': numpy.array([
-                    (segment.proximal.x + segment.distal.x) / 2.,
-                    (segment.proximal.y + segment.distal.y) / 2.,
-                    (segment.proximal.z + segment.distal.z) / 2.]),
-                'diameter': (segment.proximal.diameter + segment.distal.diameter) / 2.,
-            })
-    return neurons
-
 if __name__ == '__main__':
     filename = sys.argv[1]
     frameNo = int(sys.argv[2])
@@ -165,9 +141,6 @@ if __name__ == '__main__':
     bbpoints = bblib.traceBackbone(spline, bblength, uvframe)
 
     # Load neuron positions
-    neurons = []
-    for nmfilename in glob.glob(nmdir + '/*.nml'):
-        for neuron in load_neuron(nmfilename):
-            neurons.append(neuron)
+    neurons = nmllib.load_neurons(nmdir)
 
     draw_uvframe_neurons(uvframe, bbpoints, neurons, poseinfo, poseinfo_str)

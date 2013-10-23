@@ -65,9 +65,9 @@ def translate_by_bb(coord, bbpoints):
     return [coord[1], coord[0]]
 
 
-def draw_uvframe_neurons(uvframe, bbpoints, neurons, poseinfo):
+def draw_uvframe_neurons(uvframe, bbpoints, neurons, poseinfo, title):
     # Draw the image with neuron locations interposed
-    f = plt.figure()
+    f = plt.figure(title)
     imgplot = plt.imshow(uvframe, cmap=plt.cm.gray)
     ax = f.add_subplot(111)
 
@@ -114,7 +114,8 @@ if __name__ == '__main__':
     filename = sys.argv[1]
     frameNo = int(sys.argv[2])
     bbfilename = sys.argv[3]
-    poseinfo = { 'zoom': float(sys.argv[4]) } #dict(zip("zoom", sys.argv[3].split(','))
+    poseinfo_str = sys.argv[4]
+    poseinfo = dict(zip(["zoom"], [float(f) for f in poseinfo_str.split(',')]))
     nmdir = sys.argv[5]
 
     # Load the image uvframe
@@ -138,4 +139,4 @@ if __name__ == '__main__':
         for neuron in load_neuron(nmfilename):
             neurons.append(neuron)
 
-    draw_uvframe_neurons(uvframe, bbpoints, neurons, poseinfo)
+    draw_uvframe_neurons(uvframe, bbpoints, neurons, poseinfo, poseinfo_str)

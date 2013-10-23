@@ -9,8 +9,12 @@
 # BACKBONEFILE file describes the backbone of the current worm pose.
 #
 # POSEINFO is the current worm pose description in the format
-#   ZOOM (TODO more)
-# where ZOOM may be negative to reverse the direction of the worm.
+#   ZOOM,SHIFT
+# where ZOOM is the multiplicative element for both directions
+# (possibly negative to reverse the direction of the worm), and
+# SHIFT is the coordinate of the point in the spine which lies
+# in the horizontal middle of the worm (i.e. when we see just the
+# back tip of the worm, it will be a huge negative number).
 #
 # NEUROML2DIR is a directory containing NeuroML2 XML files (.nml)
 # describing the cells to be shown. The positions stored in the files
@@ -47,22 +51,28 @@ def project_diameter(diam, poseinfo):
     zoom = poseinfo["zoom"]
     return diam * zoom
 
-def translate_by_bb(coord, bbpoints):
+def translate_by_bb(coord, bbpoints, name, poseinfo):
     """
     Translate xy @coord by the corresponding spine point of @bbpoints.
     The x coordinate determines a point _on_ the spine, the y coordinate
     then points perpendicularly.
     """
+    coord_x = coord[0]
+    coord_x += poseinfo["shift"]
+
+    if coord_x < 0.:
+        return None
     try:
-        bbpoints0 = bbpoints[int(coord[0])]
-        bbpoints1 = bbpoints[int(coord[0] + 1.)]
+        bbpoints0 = bbpoints[int(coord_x)]
+        bbpoints1 = bbpoints[int(coord_x + 1.)]
     except IndexError:
         return None
-    beta = coord[0] - int(coord[0])
+
+    beta = coord_x - int(coord_x)
     (base_c, base_d) = bbpoints1 * beta + bbpoints0 * (1. - beta)
 
-    coord = base_c + coord[1] * base_d
-    return [coord[1], coord[0]]
+    c = base_c + coord[1] * base_d
+    return [c[1], c[0]]
 
 
 def draw_uvframe_neurons(uvframe, bbpoints, neurons, poseinfo, title):
@@ -77,7 +87,7 @@ def draw_uvframe_neurons(uvframe, bbpoints, neurons, poseinfo, title):
             edgecolor = 'yellow', fill = 0))
 
     for n in neurons:
-        pos = translate_by_bb(project_coord(n["pos"], poseinfo), bbpoints)
+        pos = translate_by_bb(project_coord(n["pos"], poseinfo), bbpoints, n["name"], poseinfo)
         if pos is None:
             continue
         r = project_diameter(n["diameter"], poseinfo) / 2.
@@ -115,7 +125,7 @@ if __name__ == '__main__':
     frameNo = int(sys.argv[2])
     bbfilename = sys.argv[3]
     poseinfo_str = sys.argv[4]
-    poseinfo = dict(zip(["zoom"], [float(f) for f in poseinfo_str.split(',')]))
+    poseinfo = dict(zip(["zoom", "shift"], [float(f) for f in poseinfo_str.split(',')]))
     nmdir = sys.argv[5]
 
     # Load the image uvframe

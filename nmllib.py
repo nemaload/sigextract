@@ -3,11 +3,20 @@
 from __future__ import print_function
 
 import glob
+import json
 import numpy
 import sys
 
 import neuroml
 import neuroml.loaders as loaders
+
+def load_neurons_json(nmfile):
+    f = open(nmfile, 'r')
+    data = json.load(f)
+    for n in data["neurons"]:
+        n["pos"] = numpy.array(n["pos"])
+    return data["neurons"]
+
 
 def load_neuron(filename):
     print("Loading " + filename + "...", file = sys.stderr)
@@ -30,9 +39,16 @@ def load_neuron(filename):
             })
     return neurons
 
-def load_neurons(nmdir):
+def load_neurons_from_dir(nmdir):
     neurons = []
     for nmfilename in glob.glob(nmdir + '/*.nml'):
         for neuron in load_neuron(nmfilename):
             neurons.append(neuron)
     return neurons
+
+
+def load_neurons(nmloc):
+    if nmloc.endswith('.json'):
+        return load_neurons_json(nmloc)
+    else:
+        return load_neurons_from_dir(nmloc)

@@ -1,4 +1,5 @@
-# Backbone tools library
+# Library with tools for dealing with the imaged worm pose
+# bb = backbone (a spline tracing the A-P axis of the worm)
 
 import json
 import math
@@ -6,7 +7,7 @@ import numpy
 import os
 import scipy.interpolate as interp
 
-def readTSV(f):
+def bbReadTSV(f):
     """
     Read TSV data (as output e.g. by pose-extract-lf.py) from @f.
     Returns a tuple of (points, edgedists), each point is a 3D
@@ -20,7 +21,7 @@ def readTSV(f):
         edgedists.append(item[3])
     return (points, edgedists)
 
-def readBbJSON(f):
+def bbReadJSON(f):
     """
     Read backbone JSON data (as output e.g. by tsv2json) from @f.
     Returns a tuple of (points, edgedists), each point is a 3D
@@ -34,7 +35,7 @@ def readBbJSON(f):
         edgedists.append(point[3])
     return (points, edgedists)
 
-def loadBackbone(bbfilename):
+def bbLoad(bbfilename):
     """
     Load backbone information from a file in one of two supported formats.
     """
@@ -42,10 +43,10 @@ def loadBackbone(bbfilename):
 
     if bbext == '.tsv':
         bbfile = open(bbfilename, 'r')
-        (points, edgedists) = readTSV(bbfile)
+        (points, edgedists) = bbReadTSV(bbfile)
     elif bbext == '.json':
         bbfile = open(bbfilename, 'r')
-        (points, edgedists) = readBbJSON(bbfile)
+        (points, edgedists) = bbReadJSON(bbfile)
     else:
         raise ValueError('Unknown backbone data extension ' + bbext)
 
@@ -58,15 +59,15 @@ def loadBackbone(bbfilename):
     return (points, edgedists)
 
 
-def p2pDist(point0, point1):
-    return math.sqrt(sum([(point0[i] - point1[i])**2 for i in range(len(point0))]))
-
-def backboneSpline(points):
+def bbToSpline(points):
     """
     Convert a sequence of points to a scipy spline object.
     Return a ([spline_y, spline_x], bblength) tuple, where @bblength
     is an estimated number of pixels along the backbone spline.
     """
+
+    def p2pDist(point0, point1):
+        return math.sqrt(sum([(point0[i] - point1[i])**2 for i in range(len(point0))]))
 
     # point2point distances for spline x-axis
     p2pdists = [0.]
@@ -84,7 +85,7 @@ def backboneSpline(points):
     return ([ytck, xtck], int(totdist))
 
 
-def traceBackbone(spline, bbpixels, uvframe):
+def bbTraceSpline(spline, bbpixels, uvframe):
     """
     Convert a backbone spline to a list of coordinates of pixels belonging
     to the spline plus information about the backbone direction at that point.

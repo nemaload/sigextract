@@ -12,7 +12,7 @@ import random
 
 import numpy
 import hdf5lflib
-import bblib
+import poselib
 
 import matplotlib.pyplot as plt
 import scipy.interpolate as interp
@@ -72,10 +72,9 @@ if __name__ == '__main__':
         cw = None
     uvframe = hdf5lflib.compute_uvframe(node, ar, cw)
 
-    (points, edgedists) = bblib.loadBackbone(bbfilename)
-
-    (spline, bblength) = bblib.backboneSpline(points)
-    bbpoints = bblib.traceBackbone(spline, bblength, uvframe)
+    (points, edgedists) = poselib.bbLoad(bbfilename)
+    (spline, bblength) = poselib.bbToSpline(points)
+    bbpoints = poselib.bbTraceSpline(spline, bblength, uvframe)
 
     # Draw the backbone
     #plt.figure()

@@ -29,7 +29,7 @@ import tables
 
 import numpy
 import hdf5lflib
-import bblib
+import poselib
 import nmllib
 
 import matplotlib.pyplot as plt
@@ -136,9 +136,9 @@ if __name__ == '__main__':
     uvframe = hdf5lflib.compute_uvframe(node, ar, cw)
 
     # Load the backbone spline
-    (points, edgedists) = bblib.loadBackbone(bbfilename)
-    (spline, bblength) = bblib.backboneSpline(points)
-    bbpoints = bblib.traceBackbone(spline, bblength, uvframe)
+    (points, edgedists) = poselib.bbLoad(bbfilename)
+    (spline, bblength) = poselib.bbToSpline(points)
+    bbpoints = poselib.bbTraceSpline(spline, bblength, uvframe)
 
     # Load neuron positions
     neurons = nmllib.load_neurons(nmdir)

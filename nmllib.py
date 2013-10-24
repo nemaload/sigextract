@@ -52,3 +52,15 @@ def load_neurons(nmloc):
         return load_neurons_json(nmloc)
     else:
         return load_neurons_from_dir(nmloc)
+
+
+def jsondump_neurons(neurons):
+    """
+    Like json.dumps(), but for neurons[] data, to a canonical format.
+    """
+    class NumPyArangeEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, numpy.ndarray):
+                return obj.tolist() # or map(int, obj)
+            return json.JSONEncoder.default(self, obj)
+    return json.dumps({"neurons": neurons}, cls = NumPyArangeEncoder)

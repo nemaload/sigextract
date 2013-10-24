@@ -15,13 +15,8 @@ import numpy
 import sys
 
 
-class NumPyArangeEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, numpy.ndarray):
-            return obj.tolist() # or map(int, obj)
-        return json.JSONEncoder.default(self, obj)
 
 if __name__ == '__main__':
     nmdir = sys.argv[1]
     neurons = nmllib.load_neurons(nmdir)
-    print json.dumps({"neurons": neurons}, cls = NumPyArangeEncoder)
+    print nmllib.jsondump_neurons(neurons)

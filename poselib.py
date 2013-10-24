@@ -91,7 +91,7 @@ def bbToSpline(points):
     return ([ytck, xtck], int(totdist))
 
 
-def bbTraceSpline(spline, bbpixels, uvframe):
+def bbTraceSpline(spline, bbpixels, uvframe = None):
     """
     Convert a backbone spline to a list of coordinates of pixels belonging
     to the spline plus information about the backbone direction at that point.

@@ -36,62 +36,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches
 from matplotlib.path import Path
 
-def project_coord(pos, poseinfo):
-    """
-    Return xy 2D projection of @pos according to @poseinfo.
-
-    @pos is in coordinate system:
-    z ^ . x
-      |/
-      +--> y
-    """
-
-    # Apply zoom
-    zoom = poseinfo["zoom"]
-    pos = pos * zoom
-
-    # Apply rotation (around the y axis)
-    alpha = poseinfo["angle"] * math.pi / 180.
-    d = math.sqrt(pos[0]**2 + pos[2]**2) # dist from 0
-    beta = math.asin(pos[2] / d) # current angle
-    gamma = alpha + beta # new angle
-    pos[0] = d * math.cos(gamma)
-    pos[2] = d * math.sin(gamma)
-
-    # Flatten - ignore the x coordinate ("depth")
-    return (pos[1], pos[2])
-
-
-def project_diameter(diam, poseinfo):
-    """
-    Return 2D projection of circle @diameter according to @poseinfo.
-    """
-    zoom = poseinfo["zoom"]
-    return diam * zoom
-
-def translate_by_bb(coord, bbpoints, name, poseinfo):
-    """
-    Translate xy @coord by the corresponding spine point of @bbpoints.
-    The x coordinate determines a point _on_ the spine, the y coordinate
-    then points perpendicularly.
-    """
-    coord_x = coord[0]
-    coord_x += poseinfo["shift"]
-
-    if coord_x < 0.:
-        return None
-    try:
-        bbpoints0 = bbpoints[int(coord_x)]
-        bbpoints1 = bbpoints[int(coord_x + 1.)]
-    except IndexError:
-        return None
-
-    beta = coord_x - int(coord_x)
-    (base_c, base_d) = bbpoints1 * beta + bbpoints0 * (1. - beta)
-
-    c = base_c + coord[1] * base_d
-    return [c[1], c[0]]
-
 
 def draw_uvframe_neurons(uvframe, bbpoints, neurons, poseinfo, title):
     # Draw the image with neuron locations interposed
@@ -105,10 +49,10 @@ def draw_uvframe_neurons(uvframe, bbpoints, neurons, poseinfo, title):
             edgecolor = 'yellow', fill = 0))
 
     for n in neurons:
-        pos = translate_by_bb(project_coord(n["pos"], poseinfo), bbpoints, n["name"], poseinfo)
+        pos = poselib.projTranslateByBb(poselib.projCoord(n["pos"], poseinfo), bbpoints, n["name"], poseinfo)
         if pos is None:
             continue
-        r = project_diameter(n["diameter"], poseinfo) / 2.
+        r = poselib.projDiameter(n["diameter"], poseinfo) / 2.
         print "showing", n["name"], "pos", pos, "r", r
         ax.add_patch(matplotlib.patches.Circle(pos, radius = r / 10.,
             edgecolor = 'green', fill = 0))

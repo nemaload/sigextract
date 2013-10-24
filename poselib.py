@@ -1,11 +1,17 @@
 # Library with tools for dealing with the imaged worm pose
+#
 # bb = backbone (a spline tracing the A-P axis of the worm)
+#
+# proj = transformation of neuron coordinates from idealized worm model
+# (as stored in NeuroML) to position corresonding to the imaged worm pose
+# (described by poseinfo map with keys "zoom", "shift", "angle")
 
 import json
 import math
 import numpy
 import os
 import scipy.interpolate as interp
+
 
 def bbReadTSV(f):
     """
@@ -109,3 +115,62 @@ def bbTraceSpline(spline, bbpixels, uvframe):
             ([x, y], [dx, dy])
                 for (y, x, dy, dx) in zip(yy, xx, dyy, dxx)
         ])
+
+
+def projCoord(pos, poseinfo):
+    """
+    Return xy 2D projection of @pos according to @poseinfo.
+    This transforms the coordinates from idealized worm model (as stored
+    in NeuroML) to position corresonding to the imaged worm pose, except
+    bending by the bb which is a separate step.
+
+    @pos is in coordinate system:
+    z ^ . x
+      |/
+      +--> y
+    """
+
+    # Apply zoom
+    zoom = poseinfo["zoom"]
+    pos = pos * zoom
+
+    # Apply rotation (around the y axis)
+    alpha = poseinfo["angle"] * math.pi / 180.
+    d = math.sqrt(pos[0]**2 + pos[2]**2) # dist from 0
+    beta = math.asin(pos[2] / d) # current angle
+    gamma = alpha + beta # new angle
+    pos[0] = d * math.cos(gamma)
+    pos[2] = d * math.sin(gamma)
+
+    # Flatten - ignore the x coordinate ("depth")
+    return (pos[1], pos[2])
+
+def projDiameter(diam, poseinfo):
+    """
+    Return 2D projection of circle @diameter according to @poseinfo.
+    """
+    zoom = poseinfo["zoom"]
+    return diam * zoom
+
+def projTranslateByBb(coord, bbpoints, name, poseinfo):
+    """
+    Translate xy @coord by the corresponding spine point of @bbpoints.
+    The x coordinate determines a point _on_ the spine, the y coordinate
+    then points perpendicularly.
+    """
+    coord_x = coord[0]
+    coord_x += poseinfo["shift"]
+
+    if coord_x < 0.:
+        return None
+    try:
+        bbpoints0 = bbpoints[int(coord_x)]
+        bbpoints1 = bbpoints[int(coord_x + 1.)]
+    except IndexError:
+        return None
+
+    beta = coord_x - int(coord_x)
+    (base_c, base_d) = bbpoints1 * beta + bbpoints0 * (1. - beta)
+
+    c = base_c + coord[1] * base_d
+    return [c[1], c[0]]

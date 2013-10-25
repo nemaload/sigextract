@@ -172,5 +172,12 @@ def projTranslateByBb(coord, bbpoints, name, poseinfo):
     beta = coord_x - int(coord_x)
     (base_c, base_d) = bbpoints1 * beta + bbpoints0 * (1. - beta)
 
-    c = base_c + coord[1] * base_d
+    # Walk perpendicularly now
+    c = [base_c[0] - coord[1] * base_d[1], base_c[1] + coord[1] * base_d[0]]
+
+    #if name == "PLMR":
+    #    print("bbpoints", bbpoints0[0], '>', bbpoints0[1], ';', bbpoints1[0], '>', bbpoints1[1])
+    #    print(name, coord, 'x', coord_x, 'base c', base_c, 'base_d', base_d)
+    #    print("====", c)
+
     return [c[1], c[0]]

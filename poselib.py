@@ -124,9 +124,13 @@ def projCoord(pos, poseinfo):
       +--> y
     """
 
+    pos = pos.copy()
+
     # Apply zoom
     zoom = poseinfo["zoom"]
-    pos = pos * zoom
+    pos[0] *= zoom
+    pos[1] *= zoom
+    pos[2] *= zoom
 
     # Apply rotation (around the y axis)
     alpha = poseinfo["angle"] * math.pi / 180.

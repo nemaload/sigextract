@@ -56,12 +56,6 @@ def bbLoad(bbfilename):
     else:
         raise ValueError('Unknown backbone data extension ' + bbext)
 
-    # Possibly reverse the backbone - just for user friendliness wrt. debug
-    # images
-    if points[0][2] > points[-1][2]:
-        points = points[::-1]
-        edgedists = edgedists[::-1]
-
     return (points, edgedists)
 
 

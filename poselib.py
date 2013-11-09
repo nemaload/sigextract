@@ -135,10 +135,11 @@ def projCoord(pos, poseinfo):
     # Apply rotation (around the y axis)
     alpha = poseinfo["angle"] * math.pi / 180.
     d = math.sqrt(pos[0]**2 + pos[2]**2) # dist from 0
-    beta = math.asin(pos[2] / d) # current angle
-    gamma = alpha + beta # new angle
-    pos[0] = d * math.cos(gamma)
-    pos[2] = d * math.sin(gamma)
+    if d != 0.:
+        beta = math.asin(pos[2] / d) # current angle
+        gamma = alpha + beta # new angle
+        pos[0] = d * math.cos(gamma)
+        pos[2] = d * math.sin(gamma)
 
     # Flatten - ignore the x coordinate ("depth")
     return (pos[1], pos[2])
